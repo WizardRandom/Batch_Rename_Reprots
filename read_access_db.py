@@ -2,13 +2,12 @@
 import pyodbc
 import glob
 import fnmatch
+import os
 
 #don't forget pip install pyodbc to set up the import correctly in the enviroment!
 
 # database file - Change as needed 
 db_file = r'Z:\Reporting\processing\SJ501723\Exports\SJ501723  - MA Worcester PACP 10-12-2017\SJ501723  - MA Worcester PACP 10-12-2017.mdb'
-
-db_file = r'C:\Users\bhykes\Desktop\SJ501723  - MA Worcester PACP 10-12-2017.mdb'
 
 #pathing location
 pathing = r'Z:\Reporting\processing\SJ501723\Exports\SJ501723  - MA Worcester PACP 10-12-2017\LINE' 
@@ -90,35 +89,68 @@ for i in PathData:
 		Dayarray.appendstr(i[2].day)
 	
 	
+NewFileName = []
 NewPath = []
 
 for i in PathData:
-	NewPath.append('Sewer_segments_' + i[1] + '_' + str(i[2].year))
+	NewFileName.append('Sewer_segments_' + i[1] + '_' + str(i[2].year))
 	
 	
 for x in range (0, len(Montharray)):
-	NewPath[x] = NewPath[x] + Montharray[x] + Dayarray[x] + '_CCTV_' 
+	NewFileName[x] = NewFileName[x] + Montharray[x] + Dayarray[x] + '_CCTV_' 
+	
+for x in range (0, len(NewFileName)):
+	NewPath.append(NewFileName[x])
 	
 regex = r'*_?.wmv'
 
 
-for x in range (0, len(NewPath)):
+for x in range (0, len(NewFileName)):
 	iter = 1
-	print PathData[x][3]
+#	print PathData[x][3]
 	if fnmatch.fnmatch(PathData[x][3], regex):
-		NewPath[x] = NewPath[x] + str(1 + int(PathData[x][3][len(PathData[x][3]) - 5]))
+		NewFileName[x] = NewFileName[x] + str(1 + int(PathData[x][3][len(PathData[x][3]) - 5]))
 	else:
-		NewPath[x] = NewPath[x] + '1'
+		NewFileName[x] = NewFileName[x] + '1'
 	
-#for x in range (0, len(NewPath)):
-#	print NewPath[x]
-	
+#for x in range (0, len(NewFileName)):
+#	print NewFileName[x]
+	#print PathData[x][3]
 
-for x in range (0, len(NewPath)):
-	SQL = 'UPDATE PACP_Media_Inspections SET Video_Name = \'' + NewPath[x] + '.wmv\', Video_Location = \'' 
-	SQL = SQL + '\\LINE\\' + NewPath[x] + '\\\' WHERE Video_Name = \'' + videofile[x] + '\' and Video_Location = \'\\LINE\\' + asset[x] + '\\\';'
+
+
+for x in range (0, len(asset)):			
+	SQL = 'UPDATE PACP_Media_Inspections SET Video_Name = \'' + NewFileName[x] + '.wmv\', Video_Location = \'' 
+	SQL = SQL + '\\LINE\\' + NewPath[x] + '1\\\' WHERE Video_Name = \'' + videofile[x] + '\' and Video_Location = \'\\LINE\\' + asset[x] + '\\\';'
 	#print db_file
 	crsr.execute(SQL)
 	conn.commit()
-	print SQL
+	#print SQL
+	#print NewPath[x]
 	
+	
+for x in range (0, len(asset)):
+		#print ''
+		#print pathing + '\\' + asset[x]
+		#print PathData[x][3]
+		#print ''
+		for filename in os.listdir(pathing + '\\' + asset[x]):
+			#print str(filename)
+			if (str(filename) == PathData[x][3]):
+				os.rename(pathing + '\\' + asset[x] + '\\' + filename, pathing + '\\' + asset[x] + '\\' + NewFileName[x] + '.wmv')
+				#print str(filename) + '  ' + PathData[y][3]
+				#print pathing + '\\' + asset[x] + '\\' + PathData[x][3] + pathing + '\\' + asset[x] + '\\' + NewFileName[x] + '.wmv'
+				#print ''
+
+					
+		
+				
+				
+for x in range (0, len(asset)):
+	for filename in os.listdir(pathing):
+		if str(filename) == asset[x]:
+			#print str(pathing + '\\' + filename)
+			#print (pathing + '\\' + NewPath[x] + '1')
+			os.rename(pathing + '\\' + filename, pathing + '\\' + NewFileName[x])
+			#print ''
+
